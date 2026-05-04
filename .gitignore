@@ -1,0 +1,11 @@
+# 🔒 Secrets
+.env
+
+# 🐍 Virtual environments
+venv/
+env/
+*_env/
+
+# Cache
+__pycache__/
+*.pyc

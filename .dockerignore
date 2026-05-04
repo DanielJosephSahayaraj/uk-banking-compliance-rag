@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+faiss_index.index
+texts.pkl
+RAG-agent.py
+main.py
+*.ipynb
+.env
