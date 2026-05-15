@@ -52,6 +52,15 @@ def store_chunks(chunks: list[str], metadata: list[dict] = None):
     client.upsert(collection_name=COLLECTION_NAME, points=points)
     print(f"Stored {len(points)} chunks in Qdrant.")
 
+def vector_search(query: str, k: int = K_VECTOR) -> list[str]:
+    query_vec = embedder.encode([query])[0].tolist()
+    results = client.query_points(
+        collection_name=COLLECTION_NAME,
+        query=query_vec,
+        limit=k
+    ).points
+    return [r.payload["text"] for r in results]
+
 def hybrid_retrieve(query: str, rewrite_query: str, hyde_answer: str) -> list[str]:
     # Vector search using HyDE answer
     vector_results = vector_search(hyde_answer, k=K_VECTOR)
@@ -61,7 +70,11 @@ def hybrid_retrieve(query: str, rewrite_query: str, hyde_answer: str) -> list[st
         tokenized = [t.lower().split() for t in vector_results]
         bm25 = BM25Okapi(tokenized)
         bm25_scores = bm25.get_scores(rewrite_query.lower().split())
-        bm25_indices = sorted(range(len(bm25_scores)), key=lambda i: bm25_scores[i], reverse=True)[:K_BM25]
+        bm25_indices = sorted(
+            range(len(bm25_scores)),
+            key=lambda i: bm25_scores[i],
+            reverse=True
+        )[:K_BM25]
         bm25_results = [vector_results[i] for i in bm25_indices]
     else:
         bm25_results = []
@@ -76,12 +89,3 @@ def hybrid_retrieve(query: str, rewrite_query: str, hyde_answer: str) -> list[st
         reranked = reranker.rerank(rerank_request)
         return [item["text"] for item in reranked[:FINAL_K]]
     return []
-
-def vector_search(query: str, k: int = K_VECTOR) -> list[str]:
-    query_vec = embedder.encode([query])[0].tolist()
-    results = client.search(
-        collection_name=COLLECTION_NAME,
-        query_vector=query_vec,
-        limit=k
-    )
-    return [r.payload["text"] for r in results]
