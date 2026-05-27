@@ -56,7 +56,7 @@ workflow.add_node("retrieve",           retrieve_node)
 workflow.add_node("summarize_history",  summarize_history_node)
 workflow.add_node("generate",           generate_node)
 workflow.add_node("compliance_check",   compliance_check_node)
-workflow.add_node("critique",           critique_node)
+workflow.add_node("critique_answer", critique_node)
 workflow.add_node("retry",              retry_node)
 workflow.add_node("document_compliance",document_compliance_node)
 workflow.add_node("direct_answer",      direct_answer_node)
@@ -107,13 +107,12 @@ workflow.add_conditional_edges(
     "compliance_check",
     lambda s: s["next"],
     {
-        "critique": "critique",
-        "end":      "end"
+        "critique": "critique_answer",  
     }
 )
 
 workflow.add_conditional_edges(
-    "critique",
+    "critique_answer",  # <-- Update source here
     lambda s: s["next"],
     {
         "end":   "end",
