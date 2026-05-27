@@ -1,23 +1,24 @@
+# nodes.py
 import os
 import json
 from datetime import datetime
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_anthropic import ChatAnthropic
 from config import (
-    ANTHROPIC_API_KEY, CLAUDE_MODEL, TEMPERATURE,
+    CLAUDE_MODEL, TEMPERATURE,
     ALLOWED_KEYWORDS, BLOCKED_KEYWORDS
 )
 from cache import get_cached_response, save_to_cache
 from retriever import hybrid_retrieve
 from history import summarize_history
 
-# ── LLM ──
+# ── LLM Instantiation ──
+# LangChain automatically looks for the "ANTHROPIC_API_KEY" environment variable 
+# at execution time, preventing import-time crashes.
 llm = ChatAnthropic(
     model=CLAUDE_MODEL,
-    api_key=ANTHROPIC_API_KEY,
     temperature=TEMPERATURE,
     max_tokens=3000
-    
 )
 
 
