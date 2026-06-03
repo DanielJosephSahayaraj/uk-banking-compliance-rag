@@ -9,55 +9,24 @@ from graph import app as rag_app
 st.set_page_config(page_title="AI Compliance Assistant", layout="wide")
 st.title("📊 AI Regulatory Compliance Assistant")
 
-# Session state
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
+# Streamlined Session state (Removed chat message history tracking)
 if "state" not in st.session_state:
     st.session_state.state = {
         "query": "",
-        "messages": [],
         "document_text": None
     }
 
-# Sidebar mode selection
-mode = st.sidebar.radio("Choose Mode", ["Chat (RAG)", "Document Compliance"])
-user_input = st.text_input("Enter your query:")
-
 # ---------------------------
-# CHAT MODE (RAG)
+# DOCUMENT COMPLIANCE MODE ONLY
 # ---------------------------
-if mode == "Chat (RAG)":
-    if st.button("Ask") and user_input:
-        st.session_state.state["query"] = user_input
-        st.session_state.state["messages"].append(HumanMessage(content=user_input))
+doc_text = st.text_area("Paste your document text here:", height=300)
 
-        # CALL GRAPH
-        result = rag_app.invoke(st.session_state.state)
-
-        st.session_state.state.update({
-            "final_response": result.get("final_response"),
-            "compliance": result.get("compliance"),
-            "messages": result.get("messages", st.session_state.state["messages"])
-        })
-
-        st.write("### 🤖 Response")
-        st.write(result.get("final_response"))
-
-        if result.get("compliance"):
-            st.write("### 📊 Compliance")
-            st.json(result["compliance"])
-
-# ---------------------------
-# DOCUMENT MODE
-# ---------------------------
-elif mode == "Document Compliance":
-    doc_text = st.text_area("Paste your document text here:")
-
-    if st.button("Analyze Document") and doc_text:
+if st.button("Analyze Document") and doc_text:
+    with st.spinner("Analyzing document compliance..."):
         st.session_state.state["query"] = "document_compliance"
         st.session_state.state["document_text"] = doc_text
 
+        # Call your LangGraph workflow
         result = rag_app.invoke(st.session_state.state)
         st.session_state.state.update(result)
 
