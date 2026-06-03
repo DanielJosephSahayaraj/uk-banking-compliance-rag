@@ -39,14 +39,12 @@ def guardrail_node(state: dict) -> dict:
             "final_response": (
                 "I am a UK Banking Regulatory Compliance Assistant. "
                 "I can only answer questions related to FCA/PRA regulations, "
-                "compliance, AML, KYC, Consumer Duty, and banking policy. "
-                "How can I help you today?"
+                "compliance, AML, KYC, Consumer Duty, and banking policy."
             ),
             "next": "end"
         }
 
-    return {"next": "cache_check"}
-
+    return {"query": state["query"], "next": "cache_check"}
 
 # ──────────────────────────────────────────
 # CACHE CHECK NODE
@@ -60,14 +58,14 @@ def cache_check_node(state: dict) -> dict:
     ]
     if any(word in q_lower for word in skip_words):
         print("Time-sensitive — skipping cache")
-        return {"next": "router"}
+        return {"query": state["query"], "next": "router"}
 
     cached = get_cached_response(state["query"])
     if cached:
         print("Cache HIT — skipping pipeline")
         return {"final_response": cached, "next": "end"}
 
-    return {"next": "router"}
+    return {"query": state["query"], "next": "router"}
 
 
 # ──────────────────────────────────────────
@@ -76,23 +74,19 @@ def cache_check_node(state: dict) -> dict:
 def router_node(state: dict) -> dict:
     q_lower = state["query"].lower()
 
-    # Document compliance route
     if state.get("query", "").startswith("document_compliance"):
-        return {"next": "document_compliance"}
+        return {"query": state["query"], "next": "document_compliance"}
 
-    # Date/time route
     if any(word in q_lower for word in ["date", "time", "today", "now"]):
-        return {"next": "date_tool"}
+        return {"query": state["query"], "next": "date_tool"}
 
-    # Web search route
     search_keywords = [
         "current", "today", "news", "latest", "recent",
         "when did", "who won", "stock price", "weather"
     ]
     if any(word in q_lower for word in search_keywords):
-        return {"next": "web_search"}
+        return {"query": state["query"], "next": "web_search"}
 
-    # LLM classifier — retrieve or not
     prompt = f"""You are a binary classifier. Reply with exactly one word.
 
 RETRIEVE — if the question needs information from the banking 
@@ -110,10 +104,9 @@ Answer:"""
     print(f"Router decision: {decision}")
 
     if "RETRIEVE" in decision:
-        return {"next": "rewrite"}
+        return {"query": state["query"], "next": "rewrite"}
 
-    return {"next": "direct_answer"}
-
+    return {"query": state["query"], "next": "direct_answer"}
 
 # ──────────────────────────────────────────
 # DATE TOOL NODE
@@ -246,6 +239,7 @@ def summarize_history_node(state: dict) -> dict:
         "messages": summarized,
         "context": state.get("context", ""),
         "retrieved_chunks": state.get("retrieved_chunks", []),
+        "query": state["query"],
         "next": "generate"
     }
 
@@ -298,12 +292,10 @@ Instructions:
 # COMPLIANCE CHECK NODE
 # ──────────────────────────────────────────
 def compliance_check_node(state: dict) -> dict:
-    # ── Only run on document queries ──
     if not state.get("document_text"):
-        print("Skipping compliance check — chat query not document")
-        return {**state, "next": "critique"}
-    return {**state, "next": "critique"}
-
+        print("Skipping compliance check — chat query")
+        return {"query": state["query"], "next": "critique"}
+    return {"query": state["query"], "next": "critique"}
 
 # ──────────────────────────────────────────
 # CRITIQUE NODE
@@ -472,8 +464,7 @@ JSON response:"""
     return {
         **state,
         "compliance": parsed,
-        "final_response": f"Compliance analysis complete. Risk Level: {risk}. Issues found: {violations}",
-        "next": "end"
+        "final_response": f"Compliance analysis complete. Risk Level: {risk}. Issues found: {violations}"
     }
 # ──────────────────────────────────────────
 # DIRECT ANSWER NODE
@@ -492,4 +483,4 @@ def direct_answer_node(state: dict) -> dict:
 # END NODE
 # ──────────────────────────────────────────
 def end_node(state: dict) -> dict:
-    return state
+    return {"query": state["query"]}
