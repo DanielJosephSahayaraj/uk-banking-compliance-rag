@@ -59,12 +59,14 @@ def get_document_type(filename: str) -> str:
         return "FCA Financial Crime"
     elif "business_plan" in filename:
         return "FCA Business Plan"
+    elif "ps21" in filename or "resilience" in filename:
+        return "Operational Resilience"
+    elif "tcf" in filename or "treating" in filename:
+        return "Treating Customers Fairly"
+    elif "fsa" in filename or "handbook" in filename:
+        return "FSA Handbook"
     elif "pra" in filename or "prudential" in filename:
         return "PRA Rulebook"
-    elif "basel" in filename:
-        return "Basel III"
-    elif "gdpr" in filename:
-        return "GDPR"
     else:
         return "FCA General"
 
