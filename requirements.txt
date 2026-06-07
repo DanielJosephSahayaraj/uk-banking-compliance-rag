@@ -1,6 +1,9 @@
 # ── Core ──
 streamlit==1.40.0
 python-dotenv==1.0.0
+fastapi
+uvicorn
+
 
 # ── LangChain Stack (Compatible Set) ──
 # Upgraded langgraph and updated community/anthropic to match core 0.3
@@ -14,6 +17,8 @@ anthropic==0.40.0
 
 # ── Vector DB ──
 qdrant-client==1.12.0
+pypdf
+cryptography
 
 # ── Hybrid Retrieval ──
 sentence-transformers==3.3.0
