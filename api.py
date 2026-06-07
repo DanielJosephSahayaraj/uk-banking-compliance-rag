@@ -35,7 +35,16 @@ api.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-
+@api.get("/", tags=["System"])
+async def root():
+    """Root endpoint — API is running."""
+    return {
+        "message": "UK Banking Regulatory Compliance API",
+        "status": "running",
+        "docs": "/docs",
+        "health": "/health",
+        "version": "1.0.0"
+    }
 # ──────────────────────────────────────────
 # REQUEST / RESPONSE MODELS
 # ──────────────────────────────────────────
@@ -249,3 +258,9 @@ async def list_sessions():
         "active_sessions": list(sessions.keys()),
         "count": len(sessions)
     }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("api:api", host="0.0.0.0", port=port)
